@@ -72,6 +72,9 @@ def makeTrainSet(testSetFileDir,vocab,flag):
     responses = []
     contexs = []
     count = 0     
+    # 2. for each batch convert the example into word index and find the
+    #    max length of this batch using mapContex2VocabIndex
+    # 3. pad to same length 
     for root, dirs, files in os.walk(testSetFileDir):
 	for file in files:
         if file.endswith("..context"):
@@ -86,6 +89,24 @@ def makeTrainSet(testSetFileDir,vocab,flag):
 		   fp.close()
 	    if flag == "Small" and count == 100: break
     return responses, contexs
+
+
+def mapVocab2Vec():
+    # 4. map each word index to its real word vector from glove
+
+"""
+This function should randomly choose N examples and 
+make a 3D batch (N * L * W_50) for the neural network 
+to train
+------------------------------------------------------
+
+@return: a 3D numpy matrix with shape (N * L * W_50)
+"""
+def genBatch(n):
+    # 1. Seperate data into batches (n examples/batch) and 
+    #    make the 3D Matrix of each batch 
+    # return np.zeroes(N, L, 50)
+    pass 
 
 ## ==== TEST FUNCTIONS ==== ##
 """
