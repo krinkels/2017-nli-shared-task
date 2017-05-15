@@ -24,10 +24,10 @@ def loadGloVec(vocabFileDir):
     file = open(vocabFileDir)
     lineIndex = 1
     for line in file.readlines():
-    	row = line.strip().split(' ')
-	vocab[row[0]] = lineIndex
-	embed.append([float(elem) for elem in row[1:]])
-	lineIndex += 1
+        row = line.strip().split(' ')
+	    vocab[row[0]] = lineIndex
+	    embed.append([float(elem) for elem in row[1:]])
+	    lineIndex += 1
     embed.append(PAD_embed)
     f = open('pretrained_embed.pckl', 'wb')
     pickle.dump(embed,f)
@@ -50,10 +50,10 @@ def mapContex2VocabIndex(rawInput,vocab):
     inputInIndex = []
     maxInputLength = 0
     for sentence in rawInput:
-	sentSplitted = re.findall(r"[\w]+|[^\s\w]",sentence.lower())
-	sentInID = [vocab[word] if word in vocab else vocab[UNK_token] for word in sentSplitted]
-	inputInIndex.append(sentInID)
-	if len(sentInID) > maxInputLength: maxInputLength = len(sentInID)
+	   sentSplitted = re.findall(r"[\w]+|[^\s\w]",sentence.lower())
+	   sentInID = [vocab[word] if word in vocab else vocab[UNK_token] for word in sentSplitted]
+	   inputInIndex.append(sentInID)
+	   if len(sentInID) > maxInputLength: maxInputLength = len(sentInID)
     return inputInIndex, maxInputLength
        
 """
@@ -74,16 +74,16 @@ def makeTrainSet(testSetFileDir,vocab,flag):
     count = 0     
     for root, dirs, files in os.walk(testSetFileDir):
 	for file in files:
-            if file.endswith("..context"):
-		fp = open(os.path.join(root, file), "r")
-		contex = ' '.join(fp.read().splitlines())
-		fp = open(os.path.join(root,file[0:-9]+"..out"), "r")
-		response = ' '.join(fp.read().splitlines())
-   		if len(contex) > 0 and len(response) > 0: 
-		    contexs.append(contex)
-		    responses.append(response)
-		    count += 1
-		fp.close()
+        if file.endswith("..context"):
+	       fp = open(os.path.join(root, file), "r")
+	       contex = ' '.join(fp.read().splitlines())
+           fp = open(os.path.join(root,file[0:-9]+"..out"), "r")
+	       response = ' '.join(fp.read().splitlines())
+   	       if len(contex) > 0 and len(response) > 0: 
+		      contexs.append(contex)
+		      responses.append(response)
+		      count += 1
+		   fp.close()
 	    if flag == "Small" and count == 100: break
     return responses, contexs
 
@@ -95,9 +95,9 @@ makes sure they are mapped correctly
 def testMapVocab2Index(rawInput,inputInIndex,vocab):
     reversedVocab = {v:k for k,v in vocab.iteritems()}
     for i in range(len(rawInput)):
-    	print "Testing input: ", rawInput[i]
-	restoredInput = [reversedVocab[index] for index in inputInIndex[i]]
-	print restoredInput
+       print "Testing input: ", rawInput[i]
+	   restoredInput = [reversedVocab[index] for index in inputInIndex[i]]
+	   print restoredInput
 	
 
 if __name__ == "__main__":
