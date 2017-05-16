@@ -59,14 +59,23 @@ def mapContex2VocabIndex(rawInput,vocab):
        
 """
 This function pad all the examples into max length 
+and also generates the corresponding mask for each
+example. 
 """
 def pad2MaxLength(inputsInIndex, maxLength):
     paddedInputsInIndex = []
+    inputLens = []
     for i in range(len(inputsInIndex)):
         inputLen = len(inputsInIndex[i])
+        inputLens.append(inputLen)
         padLen = maxLength - inputLen
         paddedInput = inputsInIndex[i] + [PAD_index] * padLen
         paddedInputsInIndex.append(paddedInput)
+        
+    inputLens = np.array(inputLens)
+    f = open('inputLens_train.pckl', 'wb')
+    pickle.dump(inputLens,f)
+    f.close()
     return paddedInputsInIndex
 
 """
@@ -124,6 +133,16 @@ def load_train_examples():
         examples = pickle.load(handle)
     return examples
 
+def load_train_examples_len():
+    with open('inputLens_train.pckl', 'rb') as handle:
+        inputLens = pickle.load(handle)
+    return inputLens
+
+def load_train_dev_len():
+    with open('inputLens_dev.pckl', 'rb') as handle:
+        inputLens = pickle.load(handle)
+    return inputLens
+
 """
 This function should randomly choose N examples and 
 make a 3D batch (N * L * W_50) for the neural network 
@@ -154,12 +173,12 @@ def testMapVocab2Index(rawInput,inputInIndex,vocab):
 
 if __name__ == "__main__":
     vocab, embed = loadGloVec(vocabFileDir)
-    with open('vocab.pckl', 'rb') as handle:
-        vocab = pickle.load(handle)
+    #with open('vocab.pckl', 'rb') as handle:
+    #    vocab = pickle.load(handle)
     examples =  makeTrainSet("dataset/speech_transcriptions/train/tokenized",vocab,"Not Small")
     examplesInIndex, maxLength = mapContex2VocabIndex(examples, vocab)
     paddedInputsInIndex = pad2MaxLength(examplesInIndex,maxLength)
-    mapVocab2Vec(paddedInputsInIndex, embed)
+    #mapVocab2Vec(paddedInputsInIndex, embed)
 #    resID, maxLength_res = mapContex2VocabIndex(responses,vocab)
 #    contID, maxLength_cont = mapContex2VocabIndex(contexs,vocab)
 #    f = open('maxLenRes.pckl','wb')
