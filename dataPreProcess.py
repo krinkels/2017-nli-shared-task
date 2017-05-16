@@ -95,9 +95,29 @@ def makeTrainSet(testSetFileDir,vocab, flag):
     return examples
 
 
-#def mapVocab2Vec():
+def mapVocab2Vec(examplesM, embed):
     # 4. map each word index to its real word vector from glove
-    
+    # input: 2D list, row is each example, col is length of each example
+    # load glove with above method loadGloVec()
+    # save into memory 3D matrix (N, L, W_50); pickle.dump()
+    N = len(examplesM)
+    L = len(examplesM[0])
+    W = 50
+    wordToVec = np.zeros((N, L, W))
+    for n in range(N):
+        for l in range(L):
+            word = examplesM[n][l]
+            gloVec = embed[word] # 50 long glove?
+            wordToVec[n][l] = gloVec
+
+    f = open('wordToVec.pckl','wb')
+    pickle.dump(wordToVec,f)
+    f.close()
+
+def load_train_examples():
+    with open('wordToVec.pckl', 'rb') as handle:
+        examples = pickle.load(handle)
+    return examples
 
 """
 This function should randomly choose N examples and 
@@ -128,13 +148,13 @@ def testMapVocab2Index(rawInput,inputInIndex,vocab):
 """	
 
 if __name__ == "__main__":
-    #vocab, embed = loadGloVec(vocabFileDir)
+    vocab, embed = loadGloVec(vocabFileDir)
     with open('vocab.pckl', 'rb') as handle:
         vocab = pickle.load(handle)
     examples =  makeTrainSet("dataset/speech_transcriptions/train/tokenized",vocab,"Small")
     examplesInIndex, maxLength = mapContex2VocabIndex(examples, vocab)
     paddedInputsInIndex = pad2MaxLength(examplesInIndex,maxLength)
-
+    mapVocab2Vec(paddedInputsInIndex, embed)
 #    resID, maxLength_res = mapContex2VocabIndex(responses,vocab)
 #    contID, maxLength_cont = mapContex2VocabIndex(contexs,vocab)
 #    f = open('maxLenRes.pckl','wb')

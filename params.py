@@ -8,7 +8,8 @@ PAD_index = 400001
 DASH_index = 400002
 UNK_embed = [100] * embed_size # the unknown embedding
 PAD_embed = [0] * embed_size   # the padding embedding  
-DASH_embed = [50] * embed_size 
+DASH_embed = [50] * embed_size
+
 class Config:
     """Holds model hyperparams and data information.
 
