@@ -1,13 +1,14 @@
 import pickle
 
-vocabFileDir = "gloVec/glove.6B.50d.txt"
+vocabFileDir = "wordVecs/glove.6B.50d.txt"
 embed_size = 50
 UNK_token = 'UNK' # the unknown token
 UNK_index = 0
 PAD_index = 400001
+DASH_index = 400002
 UNK_embed = [100] * embed_size # the unknown embedding
 PAD_embed = [0] * embed_size   # the padding embedding  
-
+DASH_embed = [50] * embed_size 
 class Config:
     """Holds model hyperparams and data information.
 
@@ -18,7 +19,7 @@ class Config:
     #n_word_features = 2 # Number of features for every word in the input.
     #window_size = 1
     #n_features = (2 * window_size + 1) * n_word_features # Number of features for every word in the input.
-    n_classes = 400002
+    n_classes = 400003
     dropout = 0.5
     embed_size = 50
     hidden_size = 300
