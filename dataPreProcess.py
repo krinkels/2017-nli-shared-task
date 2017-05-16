@@ -110,12 +110,17 @@ def mapVocab2Vec(examplesM, embed):
             gloVec = embed[word] # 50 long glove?
             wordToVec[n][l] = gloVec
 
-    f = open('wordToVec.pckl','wb')
+    f = open('wordToVec_train.pckl','wb')
     pickle.dump(wordToVec,f)
     f.close()
 
 def load_train_examples():
-    with open('wordToVec.pckl', 'rb') as handle:
+    with open('wordToVec_train.pckl', 'rb') as handle:
+        examples = pickle.load(handle)
+    return examples
+
+def load_train_examples():
+    with open('wordToVec_dev.pckl', 'rb') as handle:
         examples = pickle.load(handle)
     return examples
 
@@ -151,7 +156,7 @@ if __name__ == "__main__":
     vocab, embed = loadGloVec(vocabFileDir)
     with open('vocab.pckl', 'rb') as handle:
         vocab = pickle.load(handle)
-    examples =  makeTrainSet("dataset/speech_transcriptions/train/tokenized",vocab,"Small")
+    examples =  makeTrainSet("dataset/speech_transcriptions/train/tokenized",vocab,"Not Small")
     examplesInIndex, maxLength = mapContex2VocabIndex(examples, vocab)
     paddedInputsInIndex = pad2MaxLength(examplesInIndex,maxLength)
     mapVocab2Vec(paddedInputsInIndex, embed)
