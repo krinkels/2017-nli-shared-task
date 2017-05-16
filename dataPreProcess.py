@@ -25,10 +25,11 @@ def loadGloVec(vocabFileDir):
     lineIndex = 1
     for line in file.readlines():
         row = line.strip().split(' ')
-	    vocab[row[0]] = lineIndex
-	    embed.append([float(elem) for elem in row[1:]])
-	    lineIndex += 1
+        vocab[row[0]] = lineIndex
+        embed.append([float(elem) for elem in row[1:]])
+        lineIndex += 1
     embed.append(PAD_embed)
+    embed.append(DASH_embed)
     f = open('pretrained_embed.pckl', 'wb')
     pickle.dump(embed,f)
     f.close()
@@ -42,57 +43,61 @@ def loadGloVec(vocabFileDir):
 
 
 """
-This function maps a sentence of words into word indices
-@ rawInput: should be in 2D dimension of (numSentences, sentence)
+This function maps an example of words into word indices
+@ rawInput: should be in 2D dimension of (numExample, sentences)
 @ vocab: a dict to map words to id
 """
 def mapContex2VocabIndex(rawInput,vocab):
     inputInIndex = []
     maxInputLength = 0
     for sentence in rawInput:
-	   sentSplitted = re.findall(r"[\w]+|[^\s\w]",sentence.lower())
-	   sentInID = [vocab[word] if word in vocab else vocab[UNK_token] for word in sentSplitted]
-	   inputInIndex.append(sentInID)
-	   if len(sentInID) > maxInputLength: maxInputLength = len(sentInID)
+        sentSplitted = re.findall(r"[\w]+|[^\s\w]",sentence.lower())
+        sentInID = [vocab[word] if word in vocab else vocab[UNK_token] for word in sentSplitted]
+        inputInIndex.append(sentInID)
+        if len(sentInID) > maxInputLength: maxInputLength = len(sentInID)
     return inputInIndex, maxInputLength
        
 """
-This function loads actual email conext and response,
-and generate a training set that represents each word
-as word index. Each row of contexs and responses are 
-a pair of input and target output for training the 
-neural network.
-@ testSetFileDir: the file directory of email contex/response
-@ vocab: a dict to map words to id
-@ flag: "Small" or "All", "Small" for generating a small test set 
-        that contains 100 contex/response pair, "All" for generating
-        all the contex/response pair from the test set directory.
+This function pad all the examples into max length 
 """
-def makeTrainSet(testSetFileDir,vocab,flag):
-    responses = []
-    contexs = []
-    count = 0     
+def pad2MaxLength(inputsInIndex, maxLength):
+    paddedInputsInIndex = []
+    for i in range(len(inputsInIndex)):
+        inputLen = len(inputsInIndex[i])
+        padLen = maxLength - inputLen
+        paddedInput = inputsInIndex[i] + [PAD_index] * padLen
+        paddedInputsInIndex.append(paddedInput)
+    return paddedInputsInIndex
+
+"""
+This function loads transcript training set in text,
+and generate a training set that represents each word
+as word index. All the examples are padded to the same 
+length as the max transcript length among all subjects. 
+----------------------------------------------------------------
+@ testSetFileDir: the file directory of training set transcripts
+@ vocab: a dict to map words to id
+"""
+def makeTrainSet(testSetFileDir,vocab, flag):
+    examples = [] 
+    count = 1
     # 2. for each batch convert the example into word index and find the
     #    max length of this batch using mapContex2VocabIndex
     # 3. pad to same length 
     for root, dirs, files in os.walk(testSetFileDir):
-	for file in files:
-        if file.endswith("..context"):
-	       fp = open(os.path.join(root, file), "r")
-	       contex = ' '.join(fp.read().splitlines())
-           fp = open(os.path.join(root,file[0:-9]+"..out"), "r")
-	       response = ' '.join(fp.read().splitlines())
-   	       if len(contex) > 0 and len(response) > 0: 
-		      contexs.append(contex)
-		      responses.append(response)
-		      count += 1
-		   fp.close()
-	    if flag == "Small" and count == 100: break
-    return responses, contexs
+        for file in files:
+            fp = open(os.path.join(root, file), "r")
+            context = ' '.join(fp.read().splitlines())
+            examples.append(context)
+            fp.close()
+            count += 1
+            if flag == "Small" and count == 10: break
+    return examples
 
 
-def mapVocab2Vec():
+#def mapVocab2Vec():
     # 4. map each word index to its real word vector from glove
+    
 
 """
 This function should randomly choose N examples and 
@@ -102,16 +107,17 @@ to train
 
 @return: a 3D numpy matrix with shape (N * L * W_50)
 """
-def genBatch(n):
+#def genBatch(n):
     # 1. Seperate data into batches (n examples/batch) and 
     #    make the 3D Matrix of each batch 
     # return np.zeroes(N, L, 50)
-    pass 
+#    pass 
 
 ## ==== TEST FUNCTIONS ==== ##
 """
 This function tests the mapping of word to index and 
 makes sure they are mapped correctly
+"""
 """
 def testMapVocab2Index(rawInput,inputInIndex,vocab):
     reversedVocab = {v:k for k,v in vocab.iteritems()}
@@ -119,15 +125,16 @@ def testMapVocab2Index(rawInput,inputInIndex,vocab):
        print "Testing input: ", rawInput[i]
 	   restoredInput = [reversedVocab[index] for index in inputInIndex[i]]
 	   print restoredInput
-	
+"""	
 
 if __name__ == "__main__":
-#    inputTest = ["This is a test.","I hope this works!","Now we need to WERHIWETWEHIU pad the data?"]
-    vocab, embed = loadGloVec(vocabFileDir)
-#    mappedInput, maxInputLength = mapContex2VocabIndex(inputTest,vocab)
-#    testMapVocab2Index(inputTest,mappedInput,vocab)
-#    print "The max input length is: ", maxInputLength
-#    responses, contexs =  makeTrainSet("../out",vocab,"Small")
+    #vocab, embed = loadGloVec(vocabFileDir)
+    with open('vocab.pckl', 'rb') as handle:
+        vocab = pickle.load(handle)
+    examples =  makeTrainSet("dataset/speech_transcriptions/train/tokenized",vocab,"Small")
+    examplesInIndex, maxLength = mapContex2VocabIndex(examples, vocab)
+    paddedInputsInIndex = pad2MaxLength(examplesInIndex,maxLength)
+
 #    resID, maxLength_res = mapContex2VocabIndex(responses,vocab)
 #    contID, maxLength_cont = mapContex2VocabIndex(contexs,vocab)
 #    f = open('maxLenRes.pckl','wb')
