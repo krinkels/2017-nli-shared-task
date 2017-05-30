@@ -19,7 +19,7 @@ TRAIN_LENS_PICKLE = "train_lens.pckl"
 DEV_LENS_PICKLE = "dev_lens.pckl"
 
 GLOVE_PATH = "wordVecs/glove.6B.50d.txt"
-GLOVE_DICT_PICKLE = "glove_dict.pckle"
+GLOVE_DICT_PICKLE = "glove_dict.pckl"
 GLOVE_DIM = 50
 
 UNIVERSAL_TAGSET = nltk.tag.mapping._UNIVERSAL_TAGS
