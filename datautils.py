@@ -16,13 +16,16 @@ DEV_EXAMPLES_DIR = "dataset/speech_transcriptions/dev/tokenized/"
 TRAIN_IVECTORS_FILE = "dataset/ivectors/train/ivectors.json"
 DEV_IVECTORS_FILE = "dataset/ivectors/dev/ivectors.json"
 
-GLOVE_PATH = "wordVecs/glove.6B.50d.txt"
 GLOVE_DIM = 50
+GLOVE_PATH = "wordVecs/glove.6B.{}d.txt".format(GLOVE_DIM)
 
-UNIVERSAL_TAGSET = nltk.tag.mapping._UNIVERSAL_TAGS
-UNIVERSAL_TAGSET_INDICES = { tag : UNIVERSAL_TAGSET.index(tag) + GLOVE_DIM for tag in UNIVERSAL_TAGSET }
+TAGSET = ["$", "``", "(", ")", ",", "--", ".", ":", "CC", "CD", "DT", "EX", "FW", "IN",
+          "JJ", "JJR", "JJS", "LS", "MD", "NN", "NNP", "NNPS", "NNS", "PDT", "POS", 
+          "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "SYM", "TO", "UH", "VB", 
+          "VBD", "VBG", "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB"]
+TAGSET_INDICES = { tag : TAGSET.index(tag) + GLOVE_DIM for tag in TAGSET }
 
-FEATURE_DIM = GLOVE_DIM + len(UNIVERSAL_TAGSET)
+FEATURE_DIM = GLOVE_DIM + len(TAGSET)
 
 def load_train_ivectors():
     with open(TRAIN_IVECTORS_FILE, 'r') as json_file:
@@ -98,29 +101,25 @@ def load_examples(example_dir, glove_dict):
         f = open(example_dir + transcript_file)
         text = f.read()
         tokens = text.split()
-        tags = nltk.pos_tag(tokens, tagset='universal')
+        tags = nltk.pos_tag(tokens)
         
         vector_length = len(tokens) - tokens[1:].count("-")
         vector = np.zeros((vector_length, FEATURE_DIM), dtype=np.float32)
         
-        try:
-            index = 0
-            for i in range(len(tokens)):
-                if i + 1 < len(tokens) and tokens[i + 1] == "-":
-                    continue # Skip stuttered tokens, just process the dash symbol
+        index = 0
+        for i in range(len(tokens)):
+            if i + 1 < len(tokens) and tokens[i + 1] == "-":
+                continue # Skip stuttered tokens, just process the dash symbol
 
-                token, tag = tags[i]
-                if token.lower() in ["uh", "um", "-"]:
-                    tag = "X" # Catch disfluency symbols
+            token, tag = tags[i]
+            if token.lower() in ["uh", "um", "-"]:
+                tag = "UH" # Catch disfluency symbols
 
-                vector[index, :GLOVE_DIM] = glove_dict.get(token.lower(), np.zeros(GLOVE_DIM))
-                vector[index, UNIVERSAL_TAGSET_INDICES[tag]] = 1
-                index += 1
+            vector[index, :GLOVE_DIM] = glove_dict.get(token.lower(), np.zeros(GLOVE_DIM))
+            vector[index, TAGSET_INDICES[tag]] = 1
+            index += 1
 
-            vectors.append(vector)
-        except:
-            print transcript_file
-            break
+        vectors.append(vector)
             
     lengths = np.array([vec.shape[0] for vec in vectors], dtype=np.int64)
     L = np.max(lengths)
