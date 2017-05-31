@@ -19,7 +19,7 @@ DEV_IVECTORS_FILE = "dataset/ivectors/dev/ivectors.json"
 GLOVE_DIM = 50
 GLOVE_PATH = "wordVecs/glove.6B.{}d.txt".format(GLOVE_DIM)
 
-TAGSET = ["$", "``", "(", ")", ",", "--", ".", ":", "CC", "CD", "DT", "EX", "FW", "IN",
+TAGSET = ["$", "''", "(", ")", ",", "--", ".", ":", "CC", "CD", "DT", "EX", "FW", "IN",
           "JJ", "JJR", "JJS", "LS", "MD", "NN", "NNP", "NNPS", "NNS", "PDT", "POS", 
           "PRP", "PRP$", "RB", "RBR", "RBS", "RP", "SYM", "TO", "UH", "VB", 
           "VBD", "VBG", "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB"]
@@ -114,6 +114,9 @@ def load_examples(example_dir, glove_dict):
             token, tag = tags[i]
             if token.lower() in ["uh", "um", "-"]:
                 tag = "UH" # Catch disfluency symbols
+                
+            if tag == "``":
+                tag = "''"
 
             vector[index, :GLOVE_DIM] = glove_dict.get(token.lower(), np.zeros(GLOVE_DIM))
             vector[index, TAGSET_INDICES[tag]] = 1
