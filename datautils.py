@@ -5,7 +5,7 @@ import re
 import os
 import nltk
 import json
-from params import *
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 TRAIN_LABELS_CSV = "dataset/labels/train/labels.train.csv"
 DEV_LABELS_CSV = "dataset/labels/dev/labels.dev.csv"
@@ -86,6 +86,40 @@ def load_glove_dict(glove_path=GLOVE_PATH):
     f.close()
     return vocab
 
+def load_train_ngrams(vectorizer=None, transformer=None):    
+    filenames = [ TRAIN_EXAMPLES_DIR + filename for filename in sorted(os.listdir(TRAIN_EXAMPLES_DIR)) ]
+    
+    if vectorizer is None:
+        vectorizer = CountVectorizer(input='filename')
+        X = vectorizer.fit_transform(filenames)
+    else:
+        X = vectorizer.transform(filenames)
+        
+    if transformer is None:
+        transformer = TfidfTransformer()
+        X = transformer.fit_transform(X)
+    else:
+        X = transformer.transform(X)
+        
+    return X.toarray(), vectorizer, transformer
+
+def load_dev_ngrams(vectorizer=None, transformer=None):    
+    filenames = [ DEV_EXAMPLES_DIR + filename for filename in sorted(os.listdir(DEV_EXAMPLES_DIR)) ]
+    
+    if vectorizer is None:
+        vectorizer = CountVectorizer(input='filename')
+        X = vectorizer.fit_transform(filenames)
+    else:
+        X = vectorizer.transform(filenames)
+        
+    if transformer is None:
+        transformer = TfidfTransformer()
+        X = transformer.fit_transform(X)
+    else:
+        X = transformer.transform(X)
+        
+    return X.toarray(), vectorizer, transformer
+
 def load_train_examples(glove_dict):
     examples, lengths = load_examples(TRAIN_EXAMPLES_DIR, glove_dict)
     return examples, lengths
@@ -97,9 +131,13 @@ def load_dev_examples(glove_dict):
 def load_examples(example_dir, glove_dict):
     vectors = []
     
-    for transcript_file in os.listdir(example_dir):
+    for transcript_file in sorted(os.listdir(example_dir)):
         f = open(example_dir + transcript_file)
-        text = f.read()
+        try:
+            text = f.read()
+        except:
+            print(transcript_file)
+            break
         tokens = text.split()
         tags = nltk.pos_tag(tokens)
         
