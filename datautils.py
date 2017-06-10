@@ -16,7 +16,7 @@ DEV_EXAMPLES_DIR = "dataset/speech_transcriptions/dev/tokenized/"
 TRAIN_IVECTORS_FILE = "dataset/ivectors/train/ivectors.json"
 DEV_IVECTORS_FILE = "dataset/ivectors/dev/ivectors.json"
 
-GLOVE_DIM = 50
+GLOVE_DIM = 300
 GLOVE_PATH = "wordVecs/glove.6B.{}d.txt".format(GLOVE_DIM)
 
 TAGSET = ["$", "''", "(", ")", ",", "--", ".", ":", "CC", "CD", "DT", "EX", "FW", "IN",
